@@ -25,7 +25,7 @@
   :root{
     --paper:#FAF7F1;
     --paper-dark:#F1EAD9;
-    --ink:#13311f;
+    --ink:#6178c5; /* Green #13311f*/
     --ink-soft:#8A7860;
     --umber:#3B2A22;
     --hair:rgba(74,59,42,0.16);
@@ -89,14 +89,14 @@
   #hero h1{
     font-family:'Pinyon Script', cursive;
     font-style:normal;
-    font-size:10rem;
+    font-size:8rem;
     font-weight:400;
     color:var(--ink);
     line-height:1;
   }
   #hero .xoxo{
     font-family:'Pinyon Script', cursive;
-    font-size:2.2rem;
+    font-size:3.3rem;
     color:var(--umber);
     margin-top:2px;
   }
@@ -137,7 +137,7 @@
   /* ============ POLAROID (moodboard) ============ */
   .polaroid{
     position:absolute;
-    width:190px;
+    width:230px;
     background:#FFFDF8;
     padding:10px 10px 30px;
     box-shadow:0 6px 14px rgba(74,59,42,0.18);
@@ -205,7 +205,7 @@
 
   @media (max-width:700px){
     #hero{width:90vw; left:2000px;}
-    #hero h1{font-size:4.6rem;}
+    #hero h1{font-size:3.6rem;}
     #ui-jumps{top:auto; bottom:60px; right:14px; flex-direction:row; flex-wrap:wrap; justify-content:flex-end; max-width:220px;}
     #ui-corner{font-size:1.8rem;}
   }
@@ -237,17 +237,17 @@
     <!-- The dashed strings connecting the center to each cluster —
          shortened to match the tighter cluster spacing below -->
     <svg id="strings">
-      <path d="M 2400,1980 C 2100,1244 1680,1064 1500,974"/>   <!-- to moodboard -->
-      <path d="M 2400,1980 C 2580,1274 2820,1154 2940,1034"/>   <!-- to journal -->
-      <path d="M 2400,1980 C 2130,1694 1800,1814 1590,1904"/>   <!-- to notes -->
-      <path d="M 2400,1980 C 2610,1694 2850,1814 3030,1904"/>   <!-- to contact -->
+      <path d="M 2400,2050 C 2100,1244 1680,1064 1500,974"/>   <!-- to moodboard -->
+      <path d="M 2400,2050 C 2580,1274 2820,1154 2940,1034"/>   <!-- to journal -->
+      <path d="M 2400,2050 C 2130,1694 1800,1814 1590,1904"/>   <!-- to notes -->
+      <path d="M 2400,2050 C 2610,1694 2850,1814 3030,1904"/>   <!-- to contact -->
     </svg>
 
     <!-- ============ HERO ============ -->
     <div id="hero" data-node="hero">
       <h1>Cate</h1>
       <div class="xoxo">xoxo</div>
-      <p>a running list of things I don't want to forget — photos, half-finished thoughts, things I'm reading and looking at.</p>
+      <p>welcome to my thoughts, a running list of things I don't want to forget — photos, curiosities, adventures, things I'm reading and inspired by.</p>
       <div class="hero-graphic"></div>
     </div>
 
@@ -337,7 +337,7 @@
   // Node coordinates, matching where each cluster now actually sits
   // after being pulled closer to the center.
   const nodeCenters = {
-    hero:      [2400, 1980],
+    hero:      [2400, 2050],
     moodboard: [1420, 900],
     journal:   [2900, 1090],
     notes:     [1520, 1930],
