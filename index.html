@@ -190,6 +190,8 @@
   }
   .card .tag{font-family:'Pinyon Script', cursive; font-style:normal; font-size:1.5rem; color:var(--umber);}
   .card h3{font-family:'Pinyon Script', cursive; font-style:normal; font-size:1.7rem; font-weight:400; color:var(--ink); margin-top:2px;}
+  .entry-title-link{cursor:pointer;}
+  .entry-title-link:hover{color:var(--umber);}
   .card p{font-size:0.9rem; color:var(--ink-soft); margin-top:8px; line-height:1.6;}
   .card a.link{display:block; font-size:0.95rem; margin-top:6px;}
 
@@ -227,6 +229,59 @@
     padding:6px 16px; cursor:pointer;
   }
   #ui-jumps button:hover{border-color:var(--umber); color:var(--umber);}
+
+  /* ============ JOURNAL ENTRY OVERLAY ============
+     Clicking a journal card's title opens this. It's fixed to the
+     screen (not inside #world), so it ignores whatever pan/zoom
+     state the canvas is in — it always appears centered and at
+     normal size. .open is what actually shows it; without that
+     class it's invisible and un-clickable (pointer-events:none). */
+  .entry-overlay{
+    position:fixed; inset:0; z-index:100;
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+    background:rgba(59,42,34,0.35);
+    opacity:0; pointer-events:none;
+    transition:opacity .25s ease;
+  }
+  .entry-overlay.open{opacity:1; pointer-events:auto;}
+  .entry-overlay-inner{
+    position:relative;
+    background:var(--paper);
+    border:1px solid var(--hair);
+    box-shadow:0 20px 50px rgba(59,42,34,0.35);
+    width:100%; max-width:560px;
+    max-height:82vh;
+    overflow-y:auto;
+    padding:44px 40px;
+    transform:translateY(14px) scale(0.98);
+    transition:transform .25s ease;
+  }
+  .entry-overlay.open .entry-overlay-inner{transform:translateY(0) scale(1);}
+  .entry-close{
+    position:absolute; top:16px; right:20px;
+    background:none; border:none; cursor:pointer;
+    font-family:'Playfair Display', serif; font-style:italic;
+    font-size:1.6rem; color:var(--ink-soft); line-height:1;
+    padding:4px 8px;
+  }
+  .entry-close:hover{color:var(--umber);}
+  .entry-overlay .entry-date{
+    font-family:'Pinyon Script', cursive; font-size:1.6rem; color:var(--umber);
+  }
+  .entry-overlay .entry-title{
+    font-family:'Pinyon Script', cursive; font-style:normal;
+    font-size:2.4rem; font-weight:400; color:var(--ink);
+    margin-top:2px;
+  }
+  .entry-overlay .entry-body{
+    margin-top:22px; font-size:1.05rem; line-height:1.8; color:#3A2E22;
+  }
+  /* Each entry in the scrollable stack gets a hairline divider above
+     it, except the very first one at the top of the list. */
+  .entry-block{padding:30px 0;}
+  .entry-block:first-child{padding-top:0;}
+  .entry-block + .entry-block{border-top:1px dashed var(--hair);}
 
   @media (max-width:700px){
     #hero{width:90vw; left:2000px;}
@@ -296,17 +351,17 @@
 <div class="cluster-label" data-node="journal" style="left:2910px; top:900px;">journal</div>
 <div class="card draggable" id="card-journal-1" style="left:2780px; top:980px;">
   <div class="tag">first entry</div>
-  <h3>why I'm keeping this</h3>
+  <h3 class="entry-title-link">why I'm keeping this</h3>
   <p>[Write your first real entry here — what made you want to start this, what you hope it turns into.]</p>
 </div>
 <div class="card draggable" id="card-journal-2" style="left:3120px; top:1080px;">
   <div class="tag">—</div>
-  <h3>[a title for your next thought]</h3>
+  <h3 class="entry-title-link">[a title for your next thought]</h3>
   <p>[Placeholder — swap this whenever you have something to add.]</p>
 </div>
 <div class="card draggable" id="card-journal-3" style="left:2870px; top:1280px;">
   <div class="tag">September 9th, 2026</div>
-  <h3>[another little thought]</h3>
+  <h3 class="entry-title-link">[another little thought]</h3>
   <p>[Placeholder — swap this whenever you have something to add.]</p>
 </div>
 
@@ -335,6 +390,15 @@
       <p style="margin-top:14px;">Toronto</p>
     </div>
 
+  </div>
+</div>
+
+<!-- ============ JOURNAL ENTRY OVERLAY ============
+     One shared overlay, reused for every entry. -->
+<div class="entry-overlay" id="entry-overlay">
+  <div class="entry-overlay-inner">
+    <button class="entry-close" id="entry-close" aria-label="Close">&times;</button>
+    <div class="entry-list" id="entry-list"></div>
   </div>
 </div>
 
@@ -512,6 +576,71 @@
     }
     card.addEventListener('pointerup', endCardDrag);
     card.addEventListener('pointercancel', endCardDrag);
+  });
+
+  // ---- Journal entry overlay ----
+  // Builds the FULL stack of journal entries once (in the order they
+  // appear on the page), then — when you click a title — scrolls
+  // straight to that entry's spot in the stack. Scrolling up/down
+  // from there reveals the entries above and below it, like flipping
+  // through pages.
+  const entryOverlay = document.getElementById('entry-overlay');
+  const entryListEl = document.getElementById('entry-list');
+
+  function buildEntryList() {
+    entryListEl.innerHTML = '';
+    document.querySelectorAll('.entry-title-link').forEach((titleEl) => {
+      const cardEl = titleEl.closest('.card');
+      if (!cardEl) return;
+
+      const block = document.createElement('div');
+      block.className = 'entry-block';
+      block.id = 'entry-block-' + cardEl.id;
+
+      const dateEl = document.createElement('div');
+      dateEl.className = 'entry-date';
+      dateEl.textContent = cardEl.querySelector('.tag')?.textContent || '';
+
+      const titleCopy = document.createElement('h2');
+      titleCopy.className = 'entry-title';
+      titleCopy.textContent = titleEl.textContent;
+
+      const bodyEl = document.createElement('div');
+      bodyEl.className = 'entry-body';
+      bodyEl.textContent = cardEl.querySelector('p')?.textContent || '';
+
+      block.appendChild(dateEl);
+      block.appendChild(titleCopy);
+      block.appendChild(bodyEl);
+      entryListEl.appendChild(block);
+    });
+  }
+  buildEntryList(); // built once when the page loads
+
+  function openEntry(cardEl) {
+    entryOverlay.classList.add('open');
+    const target = document.getElementById('entry-block-' + cardEl.id);
+    if (target) target.scrollIntoView({ block: 'start' });
+  }
+  function closeEntry() {
+    entryOverlay.classList.remove('open');
+  }
+
+  document.querySelectorAll('.entry-title-link').forEach((titleEl) => {
+    titleEl.addEventListener('click', () => {
+      const cardEl = titleEl.closest('.card');
+      if (cardEl) openEntry(cardEl);
+    });
+  });
+
+  document.getElementById('entry-close').addEventListener('click', closeEntry);
+  // Clicking the dark backdrop (but not the card itself) also closes it
+  entryOverlay.addEventListener('click', (e) => {
+    if (e.target === entryOverlay) closeEntry();
+  });
+  // Escape key closes it too
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeEntry();
   });
 </script>
 
