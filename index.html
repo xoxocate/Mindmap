@@ -161,6 +161,24 @@
     font-size:1.15rem; text-align:center; margin-top:8px; color:var(--ink);
   }
 
+/* ============ CLUSTER GRAPHIC (e.g. the cranes above journal) ============
+   Same recolorable-mask trick as the hero fountain graphic — the PNG
+   supplies the shape, background-color supplies the color. */
+.cluster-graphic{
+  position:absolute;
+  width:150px;
+  aspect-ratio:1480/1880;
+  background-color:var(--umber);
+  -webkit-mask-image:url('cranes.png');
+  mask-image:url('cranes.png');
+  -webkit-mask-size:contain;
+  mask-size:contain;
+  -webkit-mask-repeat:no-repeat;
+  mask-repeat:no-repeat;
+  -webkit-mask-position:center;
+  mask-position:center;
+}
+  
   /* ============ CARD (journal / notes / contact) ============ */
   .card{
     position:absolute;
@@ -274,6 +292,7 @@
     </div>
 
     <!-- ============ JOURNAL CLUSTER ============ -->
+    <div class="cluster-graphic" style="left:2845px; top:760px;"></div>
     <div class="cluster-label" data-node="journal" style="left:2910px; top:980px;">journal</div>
     <div class="card draggable" id="card-journal-1" style="left:2850px; top:1028px;">
       <div class="tag">first entry</div>
