@@ -534,6 +534,7 @@
   document.querySelectorAll('.draggable').forEach((card) => {
     let cardDragging = false;
     let startX, startY, startLeft, startTop;
+    let downTarget = null; // exactly what you pressed down on, for tap detection
 
     // Restore a saved position, if this card has one
     const saved = localStorage.getItem('pos:' + card.id);
@@ -552,6 +553,7 @@
       startY = e.clientY;
       startLeft = parseFloat(card.style.left);
       startTop = parseFloat(card.style.top);
+      downTarget = e.target;
     });
 
     card.addEventListener('pointermove', (e) => {
@@ -565,7 +567,7 @@
       card.style.top = (startTop + dy) + 'px';
     });
 
-    function endCardDrag() {
+    function endCardDrag(e) {
       if (!cardDragging) return;
       cardDragging = false;
       card.classList.remove('dragging');
@@ -573,6 +575,19 @@
         parseFloat(card.style.left),
         parseFloat(card.style.top)
       ]));
+
+      // If you barely moved the mouse and started on a journal title,
+      // treat it as a tap/click and open that entry. We check this
+      // here — rather than relying on the browser's own "click" event
+      // — because setPointerCapture above can quietly stop click from
+      // firing on children of the dragged card.
+      if (e) {
+        const moved = Math.hypot(e.clientX - startX, e.clientY - startY);
+        if (moved < 6 && downTarget && downTarget.closest('.entry-title-link')) {
+          const entryCard = downTarget.closest('.card');
+          if (entryCard) openEntry(entryCard);
+        }
+      }
     }
     card.addEventListener('pointerup', endCardDrag);
     card.addEventListener('pointercancel', endCardDrag);
