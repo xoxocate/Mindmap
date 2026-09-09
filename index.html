@@ -89,7 +89,7 @@
   #hero h1{
     font-family:'Pinyon Script', cursive;
     font-style:normal;
-    font-size:8rem;
+    font-size:10rem;
     font-weight:400;
     color:var(--ink);
     line-height:1;
@@ -149,6 +149,14 @@
   .card p{font-size:0.9rem; color:var(--ink-soft); margin-top:8px; line-height:1.6;}
   .card a.link{display:block; font-size:0.95rem; margin-top:6px;}
 
+  /* ============ DRAGGABLE CARDS ============
+     Any card with class="draggable" can be picked up and moved.
+     .dragging is added while you're actively holding one — it lifts
+     the card above everything else and gives a stronger shadow so
+     it's clear which one you're moving. */
+  .draggable{cursor:grab;}
+  .draggable.dragging{cursor:grabbing; z-index:50; box-shadow:0 12px 26px rgba(74,59,42,0.3);}
+
   /* ============ FIXED UI (doesn't pan/zoom with the world) ============ */
   #ui-corner{
     position:fixed; top:20px; left:20px; z-index:10;
@@ -178,7 +186,7 @@
 
   @media (max-width:700px){
     #hero{width:90vw; left:2000px;}
-    #hero h1{font-size:3.7rem;}
+    #hero h1{font-size:4.6rem;}
     #ui-jumps{top:auto; bottom:60px; right:14px; flex-direction:row; flex-wrap:wrap; justify-content:flex-end; max-width:220px;}
     #ui-corner{font-size:1.8rem;}
   }
@@ -220,32 +228,32 @@
     <div id="hero" data-node="hero">
       <h1>Cate</h1>
       <div class="xoxo">xoxo</div>
-      <p>things I don't want to forget — photos, half-finished thoughts, curiosities and things I'm reading.</p>
+      <p>a running list of things I don't want to forget — photos, half-finished thoughts, things I'm reading and looking at.</p>
     </div>
 
     <!-- ============ MOODBOARD CLUSTER ============ -->
     <div class="cluster-label" data-node="moodboard" style="left:1416px; top:920px;">moodboard</div>
-    <div class="polaroid" style="left:1320px; top:812px; transform:rotate(-6deg);">
+    <div class="polaroid draggable" id="polaroid-1" style="left:1320px; top:812px; transform:rotate(-6deg);">
       <div class="photo">[ photo ]</div><div class="cap">untitled</div>
     </div>
-    <div class="polaroid" style="left:1470px; top:776px; transform:rotate(4deg);">
+    <div class="polaroid draggable" id="polaroid-2" style="left:1470px; top:776px; transform:rotate(4deg);">
       <div class="photo">[ photo ]</div><div class="cap">a place I loved</div>
     </div>
-    <div class="polaroid" style="left:1344px; top:956px; transform:rotate(3deg);">
+    <div class="polaroid draggable" id="polaroid-3" style="left:1344px; top:956px; transform:rotate(3deg);">
       <div class="photo">[ photo ]</div><div class="cap">from a museum</div>
     </div>
-    <div class="polaroid" style="left:1512px; top:932px; transform:rotate(-4deg);">
+    <div class="polaroid draggable" id="polaroid-4" style="left:1512px; top:932px; transform:rotate(-4deg);">
       <div class="photo">[ photo ]</div><div class="cap">a color I keep noticing</div>
     </div>
 
     <!-- ============ JOURNAL CLUSTER ============ -->
     <div class="cluster-label" data-node="journal" style="left:2910px; top:980px;">journal</div>
-    <div class="card" style="left:2850px; top:1028px;">
+    <div class="card draggable" id="card-journal-1" style="left:2850px; top:1028px;">
       <div class="tag">first entry</div>
       <h3>why I'm keeping this</h3>
-      <p>[Journaling is an endeavour I've tried at many times — but that I have failed to consistently pursue — I hope this can help me organize my ideas and synthesize something new — by drawing new unique connections.]</p>
+      <p>[Write your first real entry here — what made you want to start this, what you hope it turns into.]</p>
     </div>
-    <div class="card" style="left:3048px; top:1148px;">
+    <div class="card draggable" id="card-journal-2" style="left:3048px; top:1148px;">
       <div class="tag">—</div>
       <h3>[a title for your next thought]</h3>
       <p>[Placeholder — swap this whenever you have something to add.]</p>
@@ -253,22 +261,22 @@
 
     <!-- ============ NOTES CLUSTER ============ -->
     <div class="cluster-label" data-node="notes" style="left:1512px; top:1832px;">notes to self</div>
-    <div class="card" style="left:1452px; top:1880px; width:260px;">
+    <div class="card draggable" id="card-notes-1" style="left:1452px; top:1880px; width:260px;">
       <h3>art &amp; travel</h3>
       <p>Wherever I go, I end up in a museum or a market, usually both.</p>
     </div>
-    <div class="card" style="left:1632px; top:1964px; width:260px;">
+    <div class="card draggable" id="card-notes-2" style="left:1632px; top:1964px; width:260px;">
       <h3>how machines think</h3>
       <p>A long-running curiosity about AI and cognition — not the hype, the mechanics.</p>
     </div>
-    <div class="card" style="left:1464px; top:2048px; width:260px;">
+    <div class="card draggable" id="card-notes-3" style="left:1464px; top:2048px; width:260px;">
       <h3>forecasting</h3>
       <p>Prediction markets, quant trading — the structure of guessing well under uncertainty.</p>
     </div>
 
     <!-- ============ CONTACT CLUSTER ============ -->
     <div class="cluster-label" data-node="contact" style="left:2952px; top:1832px;">say hello</div>
-    <div class="card" style="left:2940px; top:1880px;">
+    <div class="card draggable" id="card-contact-1" style="left:2940px; top:1880px;">
       <h3>send something you found</h3>
       <a class="link" href="mailto:you@example.com">you@example.com</a>
       <a class="link" href="#">instagram</a>
@@ -400,6 +408,60 @@
   });
 
   window.addEventListener('resize', ()=> applyTransform());
+
+  // ---- Draggable cards ----
+  // Any element with class="draggable" gets picked up here. The key
+  // trick is e.stopPropagation() on the card's own pointerdown/move —
+  // that stops the event from also reaching the #viewport listener
+  // above, so grabbing a card moves the CARD instead of panning the
+  // whole page. Positions are saved to localStorage so a card stays
+  // where you left it next time you open the site.
+  document.querySelectorAll('.draggable').forEach((card) => {
+    let cardDragging = false;
+    let startX, startY, startLeft, startTop;
+
+    // Restore a saved position, if this card has one
+    const saved = localStorage.getItem('pos:' + card.id);
+    if (saved) {
+      const [l, t] = JSON.parse(saved);
+      card.style.left = l + 'px';
+      card.style.top = t + 'px';
+    }
+
+    card.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      card.setPointerCapture(e.pointerId);
+      cardDragging = true;
+      card.classList.add('dragging');
+      startX = e.clientX;
+      startY = e.clientY;
+      startLeft = parseFloat(card.style.left);
+      startTop = parseFloat(card.style.top);
+    });
+
+    card.addEventListener('pointermove', (e) => {
+      if (!cardDragging) return;
+      e.stopPropagation();
+      // Divide by scale so the card tracks your cursor 1:1 no matter
+      // how zoomed in or out the page currently is.
+      const dx = (e.clientX - startX) / scale;
+      const dy = (e.clientY - startY) / scale;
+      card.style.left = (startLeft + dx) + 'px';
+      card.style.top = (startTop + dy) + 'px';
+    });
+
+    function endCardDrag() {
+      if (!cardDragging) return;
+      cardDragging = false;
+      card.classList.remove('dragging');
+      localStorage.setItem('pos:' + card.id, JSON.stringify([
+        parseFloat(card.style.left),
+        parseFloat(card.style.top)
+      ]));
+    }
+    card.addEventListener('pointerup', endCardDrag);
+    card.addEventListener('pointercancel', endCardDrag);
+  });
 </script>
 
 </body>
