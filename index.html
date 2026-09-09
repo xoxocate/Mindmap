@@ -3,517 +3,398 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Catherine Li</title>
+<title>Catherine</title>
+
+<!--
+  HOW THIS PAGE WORKS (read this before you edit anything):
+  Instead of a normal page that scrolls up and down, everything here
+  lives on one big "world" — a giant div (#world) that is much bigger
+  than your screen. We move THAT div around with CSS transforms
+  (translate = pan, scale = zoom) instead of using the browser's
+  normal scrollbar. The JS at the very bottom is what listens for
+  your mouse drag / trackpad scroll / finger drag and updates the
+  transform. Everything else (the <style> and the content) works
+  exactly like a normal page.
+-->
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Homemade+Apple&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet">
+
 <style>
   :root{
-    --ivory:#F6F3EC;
-    --ink:#211D17;
-    --stone:#B8AF9E;
-    --stone-light:#E4DFD3;
-    --brass:#96814F;
-    --pine:#26332C;
-    --pine-light:#3A4A41;
-    --max-w: 1180px;
-    --col: 62ch;
+    --paper:#FAF7F1;
+    --paper-dark:#F1EAD9;
+    --ink:#4A3B2A;
+    --ink-soft:#8A7860;
+    --rust:#9C4A2E;
+    --hair:rgba(74,59,42,0.16);
   }
 
   *{box-sizing:border-box; margin:0; padding:0;}
 
-  html{scroll-behavior:smooth;}
-
-  body{
-    background:var(--ivory);
+  html, body{
+    height:100%;
+    overflow:hidden; /* the world scrolls itself — the page never does */
+    background:var(--paper);
     color:var(--ink);
-    font-family:'Inter', sans-serif;
-    font-weight:400;
-    line-height:1.6;
-    -webkit-font-smoothing:antialiased;
+    font-family:'Playfair Display', serif;
+    font-style:italic;
   }
 
-  h1,h2,h3{
-    font-family:'Fraunces', serif;
-    font-weight:500;
-    line-height:1.15;
-    letter-spacing:-0.01em;
+  /* ============ VIEWPORT ============
+     This is the "window" you look through. It never moves — it just
+     clips whatever is inside #world so you only see part of it. */
+  #viewport{
+    position:fixed; inset:0;
+    overflow:hidden;
+    cursor:grab;
+    touch-action:none; /* lets us handle drag/pinch ourselves on mobile */
+  }
+  #viewport.dragging{cursor:grabbing;}
+
+  /* Paper grain, sits above the world but below the UI, doesn't move */
+  #grain{position:fixed; inset:0; z-index:5; pointer-events:none; opacity:0.05; mix-blend-mode:multiply;}
+
+  /* ============ WORLD ============
+     Everything visual lives inside here. Its size (4400 x 2800) is
+     just a canvas big enough to spread things out — it has nothing to
+     do with the screen size. transform-origin:0 0 keeps the math for
+     panning/zooming simple (see the script at the bottom). */
+  #world{
+    position:absolute;
+    top:0; left:0;
+    width:4400px; height:2800px;
+    transform-origin:0 0;
+    will-change:transform;
   }
 
-  a{color:inherit; text-decoration:none;}
-
+  a{color:var(--rust);}
   img{max-width:100%; display:block;}
 
-  .wrap{
-    max-width:var(--max-w);
-    margin:0 auto;
-    padding:0 32px;
+  /* ============ CONNECTOR LINES ============
+     One SVG the size of the whole world, holding the dashed "string"
+     lines from the center out to each cluster — like pins on a
+     corkboard. */
+  #strings{position:absolute; top:0; left:0; width:4400px; height:2800px; pointer-events:none;}
+  #strings path{fill:none; stroke:var(--ink-soft); stroke-width:1.5; stroke-dasharray:2 7; stroke-linecap:round; opacity:0.55;}
+
+  /* ============ HERO / WORDMARK (center of the world) ============ */
+  #hero{
+    position:absolute; left:2000px; top:1250px; width:800px;
+    text-align:center;
+  }
+  #hero h1{
+    font-family:'Homemade Apple', cursive;
+    font-style:normal;
+    font-size:6rem;
+    font-weight:400;
+    color:var(--ink);
+    line-height:1;
+  }
+  #hero .flourish{width:340px; margin:6px auto 0;}
+  #hero .flourish path{fill:none; stroke:var(--rust); stroke-width:2.5; stroke-linecap:round;}
+  #hero p{
+    margin-top:18px; font-size:1.15rem; color:var(--ink-soft); max-width:38ch; margin-left:auto; margin-right:auto;
   }
 
-  /* ---------- Nav ---------- */
-  header{
-    position:sticky; top:0; z-index:20;
-    background:rgba(246,243,236,0.92);
-    backdrop-filter:blur(6px);
-    border-bottom:1px solid var(--stone-light);
-  }
-  nav.wrap{
-    display:flex; align-items:center; justify-content:space-between;
-    height:76px;
-  }
-  .brand{
-    font-family:'Fraunces', serif;
-    font-size:1.15rem;
-    font-weight:500;
-  }
-  .navlinks{
-    display:flex; gap:36px; font-size:0.92rem; color:var(--pine);
-  }
-  .navlinks a{
-    position:relative; padding-bottom:4px;
-  }
-  .navlinks a::after{
-    content:''; position:absolute; left:0; right:0; bottom:0; height:1px;
-    background:var(--brass); transform:scaleX(0); transform-origin:right;
-    transition:transform .35s ease;
-  }
-  .navlinks a:hover::after{transform:scaleX(1); transform-origin:left;}
-  .navtoggle{display:none;}
-
-  /* ---------- Hero ---------- */
-  .hero{
-    padding:120px 0 96px;
-    display:grid;
-    grid-template-columns:1.15fr 0.85fr;
-    gap:64px;
-    align-items:center;
-  }
-  .hero .eyebrow{
-    font-size:0.85rem;
-    color:var(--brass);
-    margin-bottom:18px;
-    font-family:'Inter', sans-serif;
-  }
-  .hero h1{
-    font-size:clamp(2.6rem, 5vw, 4.1rem);
-    max-width:11ch;
-  }
-  .hero p.lede{
-    margin-top:24px;
-    max-width:44ch;
-    font-size:1.08rem;
-    color:#4A4438;
-  }
-  .hero .cta-row{
-    margin-top:36px;
-    display:flex; gap:28px; align-items:center;
-    font-size:0.92rem;
-  }
-  .cta-primary{
-    border-bottom:1px solid var(--ink);
-    padding-bottom:3px;
-  }
-  .cta-secondary{
-    color:#6B6355;
+  /* ============ CLUSTER LABEL ============
+     A little handwritten tag that marks the start of each cluster. */
+  .cluster-label{
+    position:absolute;
+    font-family:'Homemade Apple', cursive;
+    font-style:normal;
+    font-size:2.1rem;
+    color:var(--rust);
+    transform:rotate(-3deg);
   }
 
-  .hero-graphic{
-    position:relative;
+  /* ============ POLAROID (moodboard) ============ */
+  .polaroid{
+    position:absolute;
+    width:190px;
+    background:#FFFDF8;
+    padding:10px 10px 30px;
+    box-shadow:0 6px 14px rgba(74,59,42,0.18);
   }
-  .hero-graphic svg{width:100%; height:auto;}
-
-  /* ---------- Section shell ---------- */
-  section{padding:88px 0;}
-  section + section{border-top:1px solid var(--stone-light);}
-
-  .section-head{
-    display:grid;
-    grid-template-columns:0.9fr 1.6fr;
-    gap:48px;
-    margin-bottom:52px;
+  .polaroid .photo{
+    aspect-ratio:1/1; background:var(--paper-dark);
+    border:1px solid var(--hair);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Playfair Display', serif; font-style:italic;
+    font-size:0.78rem; color:var(--ink-soft); text-align:center; padding:8px;
   }
-  .section-head h2{
-    font-size:1.9rem;
-  }
-  .section-head .kicker{
-    font-size:0.85rem;
-    color:var(--brass);
-    align-self:start;
-    padding-top:6px;
-  }
-  .section-head p{
-    max-width:var(--col);
-    color:#4A4438;
+  .polaroid .cap{
+    font-family:'Homemade Apple', cursive; font-style:normal;
+    font-size:1.15rem; text-align:center; margin-top:8px; color:var(--ink);
   }
 
-  /* ---------- About ---------- */
-  .about-body{
-    display:grid;
-    grid-template-columns:0.9fr 1.6fr;
-    gap:48px;
+  /* ============ CARD (journal / notes / contact) ============ */
+  .card{
+    position:absolute;
+    width:300px;
+    background:var(--paper-dark);
+    border:1px solid var(--hair);
+    padding:22px 22px 24px;
+    box-shadow:0 4px 10px rgba(74,59,42,0.10);
   }
-  .about-body .stat-col{
-    border-left:1px solid var(--stone);
-    padding-left:24px;
-  }
-  .stat{margin-bottom:28px;}
-  .stat .num{
-    font-family:'Fraunces', serif;
-    font-size:1.6rem;
-    color:var(--pine);
-  }
-  .stat .label{
-    font-size:0.85rem;
-    color:#6B6355;
-    margin-top:2px;
-  }
-  .about-body .prose p{
-    max-width:var(--col);
-    margin-bottom:18px;
-    color:#372F24;
-  }
+  .card .tag{font-family:'Homemade Apple', cursive; font-style:normal; font-size:1.5rem; color:var(--rust);}
+  .card h3{font-family:'Homemade Apple', cursive; font-style:normal; font-size:1.7rem; font-weight:400; color:var(--ink); margin-top:2px;}
+  .card p{font-size:0.9rem; color:var(--ink-soft); margin-top:8px; line-height:1.6;}
+  .card a.link{display:block; font-size:0.95rem; margin-top:6px;}
 
-  /* ---------- Highlights ---------- */
-  .highlight-list{
-    display:flex; flex-direction:column;
+  /* ============ FIXED UI (doesn't pan/zoom with the world) ============ */
+  #ui-corner{
+    position:fixed; top:20px; left:20px; z-index:10;
+    font-family:'Homemade Apple', cursive; font-style:normal;
+    font-size:1.6rem; color:var(--ink);
   }
-  .highlight{
-    display:grid;
-    grid-template-columns:0.9fr 1.6fr;
-    gap:48px;
-    padding:32px 0;
-    border-top:1px solid var(--stone-light);
+  #ui-hint{
+    position:fixed; bottom:18px; left:50%; transform:translateX(-50%); z-index:10;
+    font-family:'Playfair Display', serif; font-style:italic;
+    font-size:0.85rem; color:var(--ink-soft);
+    background:rgba(250,247,241,0.85); backdrop-filter:blur(4px);
+    padding:6px 16px; border-radius:20px; border:1px solid var(--hair);
+    white-space:nowrap;
   }
-  .highlight:first-child{border-top:none;}
-  .highlight h3{
-    font-size:1.3rem;
-    font-weight:500;
+  #ui-jumps{
+    position:fixed; top:20px; right:20px; z-index:10;
+    display:flex; flex-direction:column; gap:8px; align-items:flex-end;
   }
-  .highlight .tag{
-    font-size:0.82rem;
-    color:var(--brass);
-    margin-bottom:6px;
-    display:block;
+  #ui-jumps button{
+    font-family:'Playfair Display', serif; font-style:italic;
+    font-size:0.85rem; color:var(--ink);
+    background:rgba(250,247,241,0.85); backdrop-filter:blur(4px);
+    border:1px solid var(--hair); border-radius:20px;
+    padding:6px 16px; cursor:pointer;
   }
-  .highlight p{
-    max-width:var(--col);
-    color:#4A4438;
-    margin-top:10px;
-  }
+  #ui-jumps button:hover{border-color:var(--rust); color:var(--rust);}
 
-  /* ---------- Interests ---------- */
-  .interest-grid{
-    display:grid;
-    grid-template-columns:repeat(2, 1fr);
-    gap:1px;
-    background:var(--stone-light);
-    border:1px solid var(--stone-light);
-  }
-  .interest-card{
-    background:var(--ivory);
-    padding:36px;
-  }
-  .interest-card h3{
-    font-size:1.15rem;
-    margin-bottom:10px;
-  }
-  .interest-card p{
-    color:#4A4438;
-    font-size:0.96rem;
-    max-width:38ch;
-  }
-
-  /* ---------- Art ---------- */
-  .art-intro{
-    max-width:var(--col);
-    color:#4A4438;
-    margin-bottom:40px;
-  }
-  .art-gallery{
-    display:grid;
-    grid-template-columns:repeat(3, 1fr);
-    gap:20px;
-  }
-  .art-frame{
-    aspect-ratio:4/5;
-    background:var(--pine);
-    border:1px solid var(--pine);
-    display:flex; align-items:flex-end;
-    padding:18px;
-    position:relative;
-    overflow:hidden;
-  }
-  .art-frame::before{
-    content:'';
-    position:absolute; inset:10px;
-    border:1px solid rgba(246,243,236,0.25);
-  }
-  .art-frame .cap{
-    color:var(--ivory);
-    font-size:0.82rem;
-    position:relative;
-    z-index:1;
-  }
-  .art-frame .cap b{display:block; font-family:'Fraunces', serif; font-weight:400; font-size:1rem; margin-bottom:2px;}
-
-  /* ---------- Blog ---------- */
-  .post-list{display:flex; flex-direction:column;}
-  .post{
-    display:grid;
-    grid-template-columns:0.9fr 1.6fr;
-    gap:48px;
-    padding:28px 0;
-    border-top:1px solid var(--stone-light);
-  }
-  .post:first-child{border-top:none;}
-  .post .date{color:#6B6355; font-size:0.88rem;}
-  .post h3{font-size:1.2rem; font-weight:500; margin-bottom:8px;}
-  .post p{color:#4A4438; max-width:var(--col);}
-  .post-empty{
-    color:#6B6355; font-style:normal; font-size:0.95rem;
-  }
-
-  /* ---------- Contact / Footer ---------- */
-  footer{
-    background:var(--pine);
-    color:var(--ivory);
-    padding:80px 0 40px;
-  }
-  footer h2{
-    color:var(--ivory);
-    font-size:2rem;
-    max-width:14ch;
-  }
-  .footer-top{
-    display:grid;
-    grid-template-columns:1.2fr 0.8fr;
-    gap:48px;
-    padding-bottom:56px;
-    border-bottom:1px solid rgba(246,243,236,0.18);
-  }
-  .footer-links{
-    display:flex; flex-direction:column; gap:14px;
-    font-size:0.98rem;
-  }
-  .footer-links a{
-    border-bottom:1px solid rgba(246,243,236,0.35);
-    padding-bottom:3px;
-    width:fit-content;
-  }
-  .footer-bottom{
-    padding-top:28px;
-    display:flex; justify-content:space-between;
-    font-size:0.82rem;
-    color:rgba(246,243,236,0.55);
-  }
-
-  /* ---------- Responsive ---------- */
-  @media (max-width: 860px){
-    .navlinks{display:none;}
-    .hero{grid-template-columns:1fr; padding:80px 0 64px; gap:40px;}
-    .hero-graphic{order:-1; max-width:240px;}
-    .section-head, .about-body, .highlight, .post{grid-template-columns:1fr; gap:16px;}
-    .interest-grid{grid-template-columns:1fr;}
-    .art-gallery{grid-template-columns:repeat(2, 1fr);}
-    .footer-top{grid-template-columns:1fr;}
-    section{padding:64px 0;}
-  }
-  @media (prefers-reduced-motion: reduce){
-    html{scroll-behavior:auto;}
-    .navlinks a::after{transition:none;}
+  @media (max-width:700px){
+    #hero{width:90vw; left:2000px;}
+    #hero h1{font-size:3.6rem;}
+    #ui-jumps{top:auto; bottom:60px; right:14px; flex-direction:row; flex-wrap:wrap; justify-content:flex-end; max-width:220px;}
+    #ui-corner{font-size:1.3rem;}
   }
 </style>
 </head>
 <body>
 
-<header>
-  <nav class="wrap">
-    <div class="brand">Catherine Li</div>
-    <div class="navlinks">
-      <a href="#about">About</a>
-      <a href="#highlights">Highlights</a>
-      <a href="#interests">Interests</a>
-      <a href="#art">Art</a>
-      <a href="#blog">Writing</a>
-      <a href="#contact">Contact</a>
-    </div>
-  </nav>
-</header>
+<svg id="grain" xmlns="http://www.w3.org/2000/svg">
+  <filter id="noiseFilter">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <rect width="100%" height="100%" filter="url(#noiseFilter)"/>
+</svg>
 
-<section class="hero">
-  <div class="wrap" style="display:contents;">
-    <div>
-      <div class="eyebrow">Property Administration &amp; Building Operations</div>
-      <h1>Precision, in service of the buildings people call home.</h1>
-      <p class="lede">I manage the daily operations of a 560-unit residential tower — where resident trust, financial accuracy, and building compliance meet. Currently completing my Condominium Manager designation.</p>
-      <div class="cta-row">
-        <a href="#highlights" class="cta-primary">See my work</a>
-        <a href="#contact" class="cta-secondary">Get in touch</a>
-      </div>
-    </div>
-    <div class="hero-graphic">
-      <svg viewBox="0 0 320 420" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="90" y="30" width="140" height="360" stroke="#26332C" stroke-width="1.2"/>
-        <line x1="90" y1="70" x2="230" y2="70" stroke="#96814F" stroke-width="1"/>
-        <line x1="90" y1="110" x2="230" y2="110" stroke="#26332C" stroke-width="0.6" opacity="0.5"/>
-        <line x1="90" y1="150" x2="230" y2="150" stroke="#26332C" stroke-width="0.6" opacity="0.5"/>
-        <line x1="90" y1="190" x2="230" y2="190" stroke="#26332C" stroke-width="0.6" opacity="0.5"/>
-        <line x1="90" y1="230" x2="230" y2="230" stroke="#26332C" stroke-width="0.6" opacity="0.5"/>
-        <line x1="90" y1="270" x2="230" y2="270" stroke="#26332C" stroke-width="0.6" opacity="0.5"/>
-        <line x1="90" y1="310" x2="230" y2="310" stroke="#26332C" stroke-width="0.6" opacity="0.5"/>
-        <line x1="90" y1="350" x2="230" y2="350" stroke="#26332C" stroke-width="0.6" opacity="0.5"/>
-        <rect x="150" y="350" width="20" height="40" stroke="#26332C" stroke-width="1"/>
-        <line x1="40" y1="390" x2="280" y2="390" stroke="#26332C" stroke-width="1.2"/>
+<div id="ui-corner">Catherine</div>
+<div id="ui-hint">drag to move &middot; scroll or pinch to zoom</div>
+<div id="ui-jumps">
+  <button data-jump="hero">center</button>
+  <button data-jump="moodboard">moodboard</button>
+  <button data-jump="journal">journal</button>
+  <button data-jump="notes">notes</button>
+  <button data-jump="contact">say hello</button>
+</div>
+
+<div id="viewport">
+  <div id="world">
+
+    <!-- The dashed strings connecting the center to each cluster -->
+    <svg id="strings">
+      <path d="M 2200,1350 C 1900,1000 1200,700 900,550"/>   <!-- to moodboard -->
+      <path d="M 2400,1300 C 2700,1050 3100,850 3300,650"/>   <!-- to journal -->
+      <path d="M 2250,1550 C 1950,1750 1400,1950 1050,2100"/> <!-- to notes -->
+      <path d="M 2450,1550 C 2750,1750 3150,1950 3450,2100"/> <!-- to contact -->
+    </svg>
+
+    <!-- ============ HERO ============ -->
+    <div id="hero" data-node="hero">
+      <h1>Catherine</h1>
+      <svg class="flourish" viewBox="0 0 340 40" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10,10 C60,35 100,35 150,15 C160,10 170,25 180,20 C220,5 260,30 330,12"/>
       </svg>
+      <p>a running list of things I don't want to forget — photos, half-finished thoughts, things I'm reading and looking at.</p>
     </div>
-  </div>
-</section>
 
-<section id="about">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="kicker">About</div>
-      <h2>Grounded in operations, moving toward a license.</h2>
+    <!-- ============ MOODBOARD CLUSTER ============ -->
+    <div class="cluster-label" data-node="moodboard" style="left:760px; top:460px;">moodboard</div>
+    <div class="polaroid" style="left:600px; top:280px; transform:rotate(-6deg);">
+      <div class="photo">[ photo ]</div><div class="cap">untitled</div>
     </div>
-    <div class="about-body">
-      <div class="stat-col">
-        <div class="stat">
-          <div class="num">560</div>
-          <div class="label">units under administration</div>
-        </div>
-        <div class="stat">
-          <div class="num">60</div>
-          <div class="label">storeys</div>
-        </div>
-        <div class="stat">
-          <div class="num">12–15</div>
-          <div class="label">buildings managed in a prior portfolio role</div>
-        </div>
-      </div>
-      <div class="prose">
-        <p>I'm the Site Administrator at a 560-unit luxury residential tower in Toronto, working under a professional property management firm. My days move between resident communications, financial administration, compliance enforcement, vendor coordination, and board reporting — the quiet infrastructure that keeps a large building running smoothly.</p>
-        <p>Before this role, I worked as a Head Office Administrator across a portfolio of a dozen or more buildings, which gave me a wide view of how different properties are run before I moved into this site-specific position.</p>
-        <p>I'm currently completing my Condominium Manager designation through Humber and CMRAO coursework, working toward becoming a fully licensed manager at a luxury building.</p>
-      </div>
+    <div class="polaroid" style="left:850px; top:220px; transform:rotate(4deg);">
+      <div class="photo">[ photo ]</div><div class="cap">a place I loved</div>
     </div>
-  </div>
-</section>
+    <div class="polaroid" style="left:640px; top:520px; transform:rotate(3deg);">
+      <div class="photo">[ photo ]</div><div class="cap">from a museum</div>
+    </div>
+    <div class="polaroid" style="left:920px; top:480px; transform:rotate(-4deg);">
+      <div class="photo">[ photo ]</div><div class="cap">a color I keep noticing</div>
+    </div>
 
-<section id="highlights">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="kicker">Highlights</div>
-      <h2>Selected work</h2>
+    <!-- ============ JOURNAL CLUSTER ============ -->
+    <div class="cluster-label" data-node="journal" style="left:3250px; top:560px;">journal</div>
+    <div class="card" style="left:3150px; top:640px;">
+      <div class="tag">first entry</div>
+      <h3>why I'm keeping this</h3>
+      <p>[Write your first real entry here — what made you want to start this, what you hope it turns into.]</p>
     </div>
-    <div class="highlight-list">
-      <div class="highlight">
-        <div>
-          <span class="tag">Financial Administration</span>
-          <h3>Reconciliation &amp; reporting tools</h3>
-        </div>
-        <p>[Add detail here — e.g. what you built or improved in the building's financial administration process, and the outcome.]</p>
-      </div>
-      <div class="highlight">
-        <div>
-          <span class="tag">Resident Relations</span>
-          <h3>Communications &amp; compliance</h3>
-        </div>
-        <p>[Add detail here — e.g. how you manage resident correspondence, notices, and enforcement, and what makes your approach effective.]</p>
-      </div>
-      <div class="highlight">
-        <div>
-          <span class="tag">Self-Study</span>
-          <h3>Exterior cladding literature review</h3>
-        </div>
-        <p>[Add detail here — a short summary of your work term report on architectural cladding, and what it taught you about building envelopes.]</p>
-      </div>
-      <div class="highlight">
-        <div>
-          <span class="tag">Governance</span>
-          <h3>Board director candidacy</h3>
-        </div>
-        <p>Ran for a director position on the board of my own condominium corporation — putting my day-to-day operational perspective to work on the governance side.</p>
-      </div>
+    <div class="card" style="left:3480px; top:840px;">
+      <div class="tag">—</div>
+      <h3>[a title for your next thought]</h3>
+      <p>[Placeholder — swap this whenever you have something to add.]</p>
     </div>
-  </div>
-</section>
 
-<section id="interests">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="kicker">Interests</div>
-      <h2>Outside the building</h2>
+    <!-- ============ NOTES CLUSTER ============ -->
+    <div class="cluster-label" data-node="notes" style="left:920px; top:1980px;">notes to self</div>
+    <div class="card" style="left:820px; top:2060px; width:260px;">
+      <h3>art &amp; travel</h3>
+      <p>Wherever I go, I end up in a museum or a market, usually both.</p>
     </div>
-    <div class="interest-grid">
-      <div class="interest-card">
-        <h3>Art &amp; Travel</h3>
-        <p>An ongoing interest in art and the places it comes from — travel as a way of seeing how other cities live, build, and gather.</p>
-      </div>
-      <div class="interest-card">
-        <h3>AI &amp; Cognition</h3>
-        <p>A long-standing curiosity about artificial intelligence and cognition, and how these ideas connect to the systems I work with daily.</p>
-      </div>
-      <div class="interest-card">
-        <h3>Applied ML</h3>
-        <p>Exploring the fundamentals of machine learning — transformer mechanics and agentic systems — from first principles.</p>
-      </div>
-      <div class="interest-card">
-        <h3>Markets &amp; Forecasting</h3>
-        <p>Conceptual exploration of quantitative trading and prediction markets — the structure of forecasting under uncertainty.</p>
-      </div>
+    <div class="card" style="left:1120px; top:2200px; width:260px;">
+      <h3>how machines think</h3>
+      <p>A long-running curiosity about AI and cognition — not the hype, the mechanics.</p>
     </div>
-  </div>
-</section>
+    <div class="card" style="left:840px; top:2340px; width:260px;">
+      <h3>forecasting</h3>
+      <p>Prediction markets, quant trading — the structure of guessing well under uncertainty.</p>
+    </div>
 
-<section id="art">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="kicker">Art</div>
-      <h2>A small gallery</h2>
+    <!-- ============ CONTACT CLUSTER ============ -->
+    <div class="cluster-label" data-node="contact" style="left:3320px; top:1980px;">say hello</div>
+    <div class="card" style="left:3300px; top:2060px;">
+      <h3>send something you found</h3>
+      <a class="link" href="mailto:you@example.com">you@example.com</a>
+      <a class="link" href="#">instagram</a>
+      <a class="link" href="#">pinterest</a>
+      <p style="margin-top:14px;">Toronto</p>
     </div>
-    <p class="art-intro">Replace these frames with your own pieces — photographs, sketches, or anything you'd like to show. Each frame just needs an image and a short caption.</p>
-    <div class="art-gallery">
-      <div class="art-frame"><div class="cap"><b>Untitled</b>Medium, year</div></div>
-      <div class="art-frame"><div class="cap"><b>Untitled</b>Medium, year</div></div>
-      <div class="art-frame"><div class="cap"><b>Untitled</b>Medium, year</div></div>
-    </div>
-  </div>
-</section>
 
-<section id="blog">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="kicker">Writing</div>
-      <h2>Notes &amp; posts</h2>
-    </div>
-    <div class="post-list">
-      <div class="post">
-        <div class="date">[Date]</div>
-        <div>
-          <h3>[Your first post title]</h3>
-          <p class="post-empty">This is a placeholder. Write about anything — a building problem you solved, a thought on condo governance, art, or travel — and drop it in here.</p>
-        </div>
-      </div>
-    </div>
   </div>
-</section>
+</div>
 
-<footer id="contact">
-  <div class="wrap">
-    <div class="footer-top">
-      <h2>Let's talk about buildings, art, or anything in between.</h2>
-      <div class="footer-links">
-        <a href="mailto:you@example.com">you@example.com</a>
-        <a href="#">LinkedIn</a>
-        <a href="#">Instagram</a>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>Catherine Li</span>
-      <span>Toronto, Canada</span>
-    </div>
-  </div>
-</footer>
+<script>
+  /* ============ PAN + ZOOM ENGINE ============
+     Three numbers describe everything you see: panX, panY (how far
+     the world is shifted) and scale (how zoomed in it is). Every drag
+     or scroll just updates these three numbers and re-applies the
+     CSS transform — nothing else changes. */
+
+  const viewport = document.getElementById('viewport');
+  const world = document.getElementById('world');
+
+  let scale = 0.62;
+  let panX = 0, panY = 0;
+  const MIN_SCALE = 0.28, MAX_SCALE = 2.2;
+
+  function applyTransform(){
+    world.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+  }
+
+  // Center the view on a world coordinate (used on load and by the jump buttons)
+  function centerOn(worldX, worldY, targetScale){
+    const vw = window.innerWidth, vh = window.innerHeight;
+    panX = vw/2 - worldX*targetScale;
+    panY = vh/2 - worldY*targetScale;
+    scale = targetScale;
+    applyTransform();
+  }
+
+  // Node coordinates, read straight from where we placed them in the HTML above
+  const nodeCenters = {
+    hero:      [2400, 1300],
+    moodboard: [830, 400],
+    journal:   [3350, 750],
+    notes:     [1020, 2220],
+    contact:   [3480, 2140]
+  };
+
+  centerOn(...nodeCenters.hero, 0.62);
+
+  // ---- Drag to pan (mouse + touch, via Pointer Events) ----
+  const activePointers = new Map(); // pointerId -> {x, y}
+  let dragging = false;
+  let lastMid = null;
+  let pinchStartDist = null;
+  let pinchStartScale = null;
+
+  function dist(a, b){ return Math.hypot(a.x - b.x, a.y - b.y); }
+  function mid(a, b){ return { x: (a.x + b.x)/2, y: (a.y + b.y)/2 }; }
+
+  viewport.addEventListener('pointerdown', (e)=>{
+    viewport.setPointerCapture(e.pointerId);
+    activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if(activePointers.size === 1){
+      dragging = true;
+      viewport.classList.add('dragging');
+    }
+    if(activePointers.size === 2){
+      const pts = [...activePointers.values()];
+      pinchStartDist = dist(pts[0], pts[1]);
+      pinchStartScale = scale;
+      lastMid = mid(pts[0], pts[1]);
+    }
+  });
+
+  viewport.addEventListener('pointermove', (e)=>{
+    if(!activePointers.has(e.pointerId)) return;
+    const prev = activePointers.get(e.pointerId);
+    const curr = { x: e.clientX, y: e.clientY };
+    activePointers.set(e.pointerId, curr);
+
+    if(activePointers.size === 1 && dragging){
+      panX += curr.x - prev.x;
+      panY += curr.y - prev.y;
+      applyTransform();
+    } else if(activePointers.size === 2){
+      const pts = [...activePointers.values()];
+      const newDist = dist(pts[0], pts[1]);
+      const newMid = mid(pts[0], pts[1]);
+      const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, pinchStartScale * (newDist / pinchStartDist)));
+      // Keep the midpoint of the two fingers anchored while zooming
+      const worldX = (newMid.x - panX) / scale;
+      const worldY = (newMid.y - panY) / scale;
+      scale = newScale;
+      panX = newMid.x - worldX * scale;
+      panY = newMid.y - worldY * scale;
+      applyTransform();
+    }
+  });
+
+  function endPointer(e){
+    activePointers.delete(e.pointerId);
+    if(activePointers.size < 2){ pinchStartDist = null; }
+    if(activePointers.size === 0){ dragging = false; viewport.classList.remove('dragging'); }
+  }
+  viewport.addEventListener('pointerup', endPointer);
+  viewport.addEventListener('pointercancel', endPointer);
+  viewport.addEventListener('pointerleave', endPointer);
+
+  // ---- Scroll / trackpad to zoom, anchored on the cursor ----
+  viewport.addEventListener('wheel', (e)=>{
+    e.preventDefault();
+    const factor = Math.exp(-e.deltaY * 0.0015);
+    const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * factor));
+    const worldX = (e.clientX - panX) / scale;
+    const worldY = (e.clientY - panY) / scale;
+    scale = newScale;
+    panX = e.clientX - worldX * scale;
+    panY = e.clientY - worldY * scale;
+    applyTransform();
+  }, { passive:false });
+
+  // ---- Jump buttons ----
+  document.getElementById('ui-jumps').addEventListener('click', (e)=>{
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    const key = btn.dataset.jump;
+    const target = nodeCenters[key];
+    if(target) centerOn(target[0], target[1], key === 'hero' ? 0.62 : 0.85);
+  });
+
+  window.addEventListener('resize', ()=> applyTransform());
+</script>
 
 </body>
 </html>
