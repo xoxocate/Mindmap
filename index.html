@@ -87,7 +87,7 @@
   #hero h1{
     font-family:'Pinyon Script', cursive;
     font-style:normal;
-    font-size:6rem;
+    font-size:8rem;
     font-weight:400;
     color:var(--ink);
     line-height:1;
@@ -172,7 +172,7 @@
 
   @media (max-width:700px){
     #hero{width:90vw; left:2000px;}
-    #hero h1{font-size:3.6rem;}
+    #hero h1{font-size:3.8rem;}
     #ui-jumps{top:auto; bottom:60px; right:14px; flex-direction:row; flex-wrap:wrap; justify-content:flex-end; max-width:220px;}
     #ui-corner{font-size:1.3rem;}
   }
@@ -310,7 +310,7 @@
     contact:   [3480, 2140]
   };
 
-  centerOn(...nodeCenters.hero, 0.62);
+  centerOn(...nodeCenters.hero, 0.9); //Size of Center Font
 
   // ---- Drag to pan (mouse + touch, via Pointer Events) ----
   const activePointers = new Map(); // pointerId -> {x, y}
