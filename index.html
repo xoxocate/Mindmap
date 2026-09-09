@@ -27,7 +27,7 @@
     --paper-dark:#F1EAD9;
     --ink:#13311f;
     --ink-soft:#8A7860;
-    --aqua:#3a5cc9;
+    --umber:#3B2A22;
     --hair:rgba(74,59,42,0.16);
   }
 
@@ -69,13 +69,15 @@
     will-change:transform;
   }
 
-  a{color:var(--rust);}
+  a{color:var(--umber);}
   img{max-width:100%; display:block;}
 
   /* ============ CONNECTOR LINES ============
      One SVG the size of the whole world, holding the dashed "string"
      lines from the center out to each cluster — like pins on a
-     corkboard. */
+     corkboard. All four share one starting point (2400,1610), right
+     under "xoxo". Every cluster was pulled about 40% closer to that
+     point, so these curves are shorter than they used to be. */
   #strings{position:absolute; top:0; left:0; width:4400px; height:2800px; pointer-events:none;}
   #strings path{fill:none; stroke:var(--ink-soft); stroke-width:1.5; stroke-dasharray:2 7; stroke-linecap:round; opacity:0.55;}
 
@@ -87,13 +89,17 @@
   #hero h1{
     font-family:'Pinyon Script', cursive;
     font-style:normal;
-    font-size:8rem;
+    font-size:10rem;
     font-weight:400;
     color:var(--ink);
     line-height:1;
   }
-  #hero .flourish{width:340px; margin:6px auto 0;}
-  #hero .flourish path{fill:none; stroke:var(--rust); stroke-width:2.5; stroke-linecap:round;}
+  #hero .xoxo{
+    font-family:'Pinyon Script', cursive;
+    font-size:2.2rem;
+    color:var(--umber);
+    margin-top:2px;
+  }
   #hero p{
     margin-top:18px; font-size:1.15rem; color:var(--ink-soft); max-width:38ch; margin-left:auto; margin-right:auto;
   }
@@ -105,7 +111,7 @@
     font-family:'Pinyon Script', cursive;
     font-style:normal;
     font-size:2.1rem;
-    color:var(--rust);
+    color:var(--umber);
     transform:rotate(-3deg);
   }
 
@@ -138,7 +144,7 @@
     padding:22px 22px 24px;
     box-shadow:0 4px 10px rgba(74,59,42,0.10);
   }
-  .card .tag{font-family:'Pinyon Script', cursive; font-style:normal; font-size:1.5rem; color:var(--rust);}
+  .card .tag{font-family:'Pinyon Script', cursive; font-style:normal; font-size:1.5rem; color:var(--umber);}
   .card h3{font-family:'Pinyon Script', cursive; font-style:normal; font-size:1.7rem; font-weight:400; color:var(--ink); margin-top:2px;}
   .card p{font-size:0.9rem; color:var(--ink-soft); margin-top:8px; line-height:1.6;}
   .card a.link{display:block; font-size:0.95rem; margin-top:6px;}
@@ -147,7 +153,7 @@
   #ui-corner{
     position:fixed; top:20px; left:20px; z-index:10;
     font-family:'Pinyon Script', cursive; font-style:normal;
-    font-size:1.6rem; color:var(--ink);
+    font-size:2.6rem; color:var(--ink);
   }
   #ui-hint{
     position:fixed; bottom:18px; left:50%; transform:translateX(-50%); z-index:10;
@@ -168,13 +174,13 @@
     border:1px solid var(--hair); border-radius:20px;
     padding:6px 16px; cursor:pointer;
   }
-  #ui-jumps button:hover{border-color:var(--rust); color:var(--rust);}
+  #ui-jumps button:hover{border-color:var(--umber); color:var(--umber);}
 
   @media (max-width:700px){
     #hero{width:90vw; left:2000px;}
-    #hero h1{font-size:3.8rem;}
+    #hero h1{font-size:4.6rem;}
     #ui-jumps{top:auto; bottom:60px; right:14px; flex-direction:row; flex-wrap:wrap; justify-content:flex-end; max-width:220px;}
-    #ui-corner{font-size:1.3rem;}
+    #ui-corner{font-size:1.8rem;}
   }
 </style>
 </head>
@@ -201,69 +207,68 @@
 <div id="viewport">
   <div id="world">
 
-    <!-- The dashed strings connecting the center to each cluster -->
+    <!-- The dashed strings connecting the center to each cluster —
+         shortened to match the tighter cluster spacing below -->
     <svg id="strings">
-      <path d="M 2200,1350 C 1900,1000 1200,700 900,550"/>   <!-- to moodboard -->
-      <path d="M 2400,1300 C 2700,1050 3100,850 3300,650"/>   <!-- to journal -->
-      <path d="M 2250,1550 C 1950,1750 1400,1950 1050,2100"/> <!-- to notes -->
-      <path d="M 2450,1550 C 2750,1750 3150,1950 3450,2100"/> <!-- to contact -->
+      <path d="M 2400,1610 C 2100,1244 1680,1064 1500,974"/>   <!-- to moodboard -->
+      <path d="M 2400,1610 C 2580,1274 2820,1154 2940,1034"/>   <!-- to journal -->
+      <path d="M 2400,1610 C 2130,1694 1800,1814 1590,1904"/>   <!-- to notes -->
+      <path d="M 2400,1610 C 2610,1694 2850,1814 3030,1904"/>   <!-- to contact -->
     </svg>
 
     <!-- ============ HERO ============ -->
     <div id="hero" data-node="hero">
       <h1>Cate</h1>
-      <svg class="flourish" viewBox="0 0 340 40" xmlns="http://www.w3.org/2000/svg">
-        <path d="M10,10 C60,35 100,35 150,15 C160,10 170,25 180,20 C220,5 260,30 330,12"/>
-      </svg>
+      <div class="xoxo">xoxo</div>
       <p>a running list of things I don't want to forget — photos, half-finished thoughts, things I'm reading and looking at.</p>
     </div>
 
     <!-- ============ MOODBOARD CLUSTER ============ -->
-    <div class="cluster-label" data-node="moodboard" style="left:760px; top:460px;">moodboard</div>
-    <div class="polaroid" style="left:600px; top:280px; transform:rotate(-6deg);">
+    <div class="cluster-label" data-node="moodboard" style="left:1416px; top:920px;">moodboard</div>
+    <div class="polaroid" style="left:1320px; top:812px; transform:rotate(-6deg);">
       <div class="photo">[ photo ]</div><div class="cap">untitled</div>
     </div>
-    <div class="polaroid" style="left:850px; top:220px; transform:rotate(4deg);">
+    <div class="polaroid" style="left:1470px; top:776px; transform:rotate(4deg);">
       <div class="photo">[ photo ]</div><div class="cap">a place I loved</div>
     </div>
-    <div class="polaroid" style="left:640px; top:520px; transform:rotate(3deg);">
+    <div class="polaroid" style="left:1344px; top:956px; transform:rotate(3deg);">
       <div class="photo">[ photo ]</div><div class="cap">from a museum</div>
     </div>
-    <div class="polaroid" style="left:920px; top:480px; transform:rotate(-4deg);">
+    <div class="polaroid" style="left:1512px; top:932px; transform:rotate(-4deg);">
       <div class="photo">[ photo ]</div><div class="cap">a color I keep noticing</div>
     </div>
 
     <!-- ============ JOURNAL CLUSTER ============ -->
-    <div class="cluster-label" data-node="journal" style="left:3250px; top:560px;">journal</div>
-    <div class="card" style="left:3150px; top:640px;">
+    <div class="cluster-label" data-node="journal" style="left:2910px; top:980px;">journal</div>
+    <div class="card" style="left:2850px; top:1028px;">
       <div class="tag">first entry</div>
       <h3>why I'm keeping this</h3>
       <p>[Write your first real entry here — what made you want to start this, what you hope it turns into.]</p>
     </div>
-    <div class="card" style="left:3480px; top:840px;">
+    <div class="card" style="left:3048px; top:1148px;">
       <div class="tag">—</div>
       <h3>[a title for your next thought]</h3>
       <p>[Placeholder — swap this whenever you have something to add.]</p>
     </div>
 
     <!-- ============ NOTES CLUSTER ============ -->
-    <div class="cluster-label" data-node="notes" style="left:920px; top:1980px;">notes to self</div>
-    <div class="card" style="left:820px; top:2060px; width:260px;">
+    <div class="cluster-label" data-node="notes" style="left:1512px; top:1832px;">notes to self</div>
+    <div class="card" style="left:1452px; top:1880px; width:260px;">
       <h3>art &amp; travel</h3>
       <p>Wherever I go, I end up in a museum or a market, usually both.</p>
     </div>
-    <div class="card" style="left:1120px; top:2200px; width:260px;">
+    <div class="card" style="left:1632px; top:1964px; width:260px;">
       <h3>how machines think</h3>
       <p>A long-running curiosity about AI and cognition — not the hype, the mechanics.</p>
     </div>
-    <div class="card" style="left:840px; top:2340px; width:260px;">
+    <div class="card" style="left:1464px; top:2048px; width:260px;">
       <h3>forecasting</h3>
       <p>Prediction markets, quant trading — the structure of guessing well under uncertainty.</p>
     </div>
 
     <!-- ============ CONTACT CLUSTER ============ -->
-    <div class="cluster-label" data-node="contact" style="left:3320px; top:1980px;">say hello</div>
-    <div class="card" style="left:3300px; top:2060px;">
+    <div class="cluster-label" data-node="contact" style="left:2952px; top:1832px;">say hello</div>
+    <div class="card" style="left:2940px; top:1880px;">
       <h3>send something you found</h3>
       <a class="link" href="mailto:you@example.com">you@example.com</a>
       <a class="link" href="#">instagram</a>
@@ -284,7 +289,7 @@
   const viewport = document.getElementById('viewport');
   const world = document.getElementById('world');
 
-  let scale = 0.62;
+  let scale = 0.9;
   let panX = 0, panY = 0;
   const MIN_SCALE = 0.28, MAX_SCALE = 2.2;
 
@@ -301,16 +306,17 @@
     applyTransform();
   }
 
-  // Node coordinates, read straight from where we placed them in the HTML above
+  // Node coordinates, matching where each cluster now actually sits
+  // after being pulled closer to the center.
   const nodeCenters = {
-    hero:      [2400, 1300],
-    moodboard: [830, 400],
-    journal:   [3480, 400],
-    notes:     [1020, 2220],
-    contact:   [3480, 2140]
+    hero:      [2400, 1610],
+    moodboard: [1420, 900],
+    journal:   [2900, 1090],
+    notes:     [1520, 1930],
+    contact:   [2950, 1860]
   };
 
-  centerOn(...nodeCenters.hero, 0.9); //Size of Center Font
+  centerOn(...nodeCenters.hero, 0.9); // Size of Center Font
 
   // ---- Drag to pan (mouse + touch, via Pointer Events) ----
   const activePointers = new Map(); // pointerId -> {x, y}
@@ -390,7 +396,7 @@
     if(!btn) return;
     const key = btn.dataset.jump;
     const target = nodeCenters[key];
-    if(target) centerOn(target[0], target[1], key === 'hero' ? 0.62 : 0.85);
+    if(target) centerOn(target[0], target[1], key === 'hero' ? 0.9 : 0.85);
   });
 
   window.addEventListener('resize', ()=> applyTransform());
