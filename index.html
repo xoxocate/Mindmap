@@ -40,6 +40,12 @@
     color:var(--ink);
     font-family:'Playfair Display', serif;
     font-style:italic;
+    /* Stops dragging from also highlighting/selecting text underneath
+       your cursor — without this, every drag on the canvas or a card
+       fights with the browser's normal text-selection behavior. */
+    -webkit-user-select:none;
+    -moz-user-select:none;
+    user-select:none;
   }
 
   /* ============ VIEWPORT ============
@@ -70,7 +76,7 @@
   }
 
   a{color:var(--umber);}
-  img{max-width:100%; display:block;}
+  img{max-width:100%; display:block; -webkit-user-drag:none; user-drag:none;}
 
   /* ============ CONNECTOR LINES ============
      One SVG the size of the whole world, holding the dashed "string"
