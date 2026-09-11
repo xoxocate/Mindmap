@@ -150,6 +150,7 @@
     box-shadow:0 6px 14px rgba(74,59,42,0.18);
   }
   .polaroid .photo{
+    position:relative;
     aspect-ratio:1/1; background:var(--paper-dark);
     border:1px solid var(--hair);
     display:flex; align-items:center; justify-content:center;
@@ -158,6 +159,23 @@
   /* Fills the whole square edge to edge, cropping whatever doesn't
      fit — unlike the full gallery, which never crops. */
   .polaroid .photo img{width:100%; height:100%; object-fit:cover; display:block;}
+  /* A little film-grain texture over the photo for a vintage feel —
+     same trick as the page-wide #grain overlay (an SVG turbulence
+     filter), just stronger and scoped to the polaroid square. */
+  .polaroid .photo::after{
+    content:"";
+    position:absolute; inset:0;
+    /* Explicit width/height/viewBox so the noise renders at a fixed,
+       fine-grained pixel size and then TILES (via background-size
+       below) — left to the default intrinsic sizing, the whole thing
+       stretches to fill the photo instead, blurring the grain into
+       almost nothing. */
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='2.2'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size:70px 70px;
+    opacity:0.5;
+    mix-blend-mode:multiply;
+    pointer-events:none;
+  }
   /* Only a real placeholder (no photo uploaded yet) gets the inset
      text treatment — once a real photo replaces it, the img above
      fills the square completely instead. */
