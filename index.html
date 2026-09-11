@@ -988,10 +988,12 @@
   });
 
   // ---- Mouse trail ----
-  // A continuous, fading light-blue line follows the cursor anywhere
-  // on the page — recent cursor positions are kept for a little over
-  // a second and redrawn every frame, older points more transparent,
-  // so the tail fades smoothly instead of disappearing all at once.
+  // A continuous, fading light-blue line follows the cursor — only
+  // while the full-window moodboard gallery is open, since it read as
+  // distracting everywhere else. Recent cursor positions are kept for
+  // a little over a second and redrawn every frame, older points more
+  // transparent, so the tail fades smoothly instead of disappearing
+  // all at once.
   const trailCanvas = document.getElementById('mouse-trail');
   const trailCtx = trailCanvas.getContext('2d');
   const TRAIL_LIFETIME = 1100; // ms
@@ -1006,6 +1008,7 @@
 
   let trailPoints = [];
   window.addEventListener('pointermove', (e) => {
+    if (!moodboardOverlay.classList.contains('open')) return;
     // getCoalescedEvents fills in the in-between positions a fast
     // mouse skips between frames, so the line has no gaps in it.
     const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
@@ -1016,12 +1019,20 @@
   });
 
   function drawTrail(){
+    if (!moodboardOverlay.classList.contains('open')) {
+      if (trailPoints.length) {
+        trailPoints = [];
+        trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+      }
+      requestAnimationFrame(drawTrail);
+      return;
+    }
     const now = performance.now();
     trailPoints = trailPoints.filter(p => now - p.t < TRAIL_LIFETIME);
     trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
     trailCtx.lineCap = 'round';
     trailCtx.lineJoin = 'round';
-    trailCtx.lineWidth = 1.5;
+    trailCtx.lineWidth = 3.75;
     for (let i = 1; i < trailPoints.length; i++){
       const age = now - trailPoints[i].t;
       const alpha = Math.max(0, 1 - age / TRAIL_LIFETIME);
