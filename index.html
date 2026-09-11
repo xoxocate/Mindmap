@@ -167,11 +167,12 @@
   }
   .polaroid .cap{
     /* Matches the hero section's body paragraph — plain italic serif,
-       not the cursive script used for section titles/dates — since
-       cursive script's tall swashes overlap unreadably once a longer
-       caption wraps to a second line. */
+       not the cursive script used for section titles/dates. Kept to
+       one line with an ellipsis; the full caption always shows in
+       the gallery pop-up when you click into the moodboard. */
     font-family:'Playfair Display', serif; font-style:italic;
-    font-size:1.15rem; line-height:2; text-align:center; margin-top:8px; color:var(--ink-soft);
+    font-size:0.85rem; text-align:center; margin-top:8px; color:var(--ink-soft);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
   .cluster-label[data-node="moodboard"]{cursor:pointer; z-index:2;}
   .cluster-label[data-node="moodboard"]:hover{opacity:0.7;}
