@@ -153,13 +153,18 @@
     aspect-ratio:1/1; background:var(--paper-dark);
     border:1px solid var(--hair);
     display:flex; align-items:center; justify-content:center;
-    font-family:'Playfair Display', serif; font-style:italic;
-    font-size:0.78rem; color:var(--ink-soft); text-align:center; padding:8px;
     overflow:hidden;
   }
-  /* Fills the whole square, cropping whatever doesn't fit — unlike the
-     full gallery, which never crops. */
-  .polaroid .photo img{width:100%; height:100%; object-fit:cover;}
+  /* Fills the whole square edge to edge, cropping whatever doesn't
+     fit — unlike the full gallery, which never crops. */
+  .polaroid .photo img{width:100%; height:100%; object-fit:cover; display:block;}
+  /* Only a real placeholder (no photo uploaded yet) gets the inset
+     text treatment — once a real photo replaces it, the img above
+     fills the square completely instead. */
+  .polaroid .photo.placeholder{
+    font-family:'Playfair Display', serif; font-style:italic;
+    font-size:0.78rem; color:var(--ink-soft); text-align:center; padding:8px;
+  }
   .polaroid .cap{
     /* Matches the hero section's body paragraph — plain italic serif,
        not the cursive script used for section titles/dates — since
@@ -324,11 +329,20 @@
   .moodboard-strip{
     height:100%;
     display:flex;
-    align-items:center;
+    /* Not align-items:center — that centers each ITEM (photo + its own
+       caption) individually, so a photo next to a longer, wrapped
+       caption sits higher than one next to a short caption and they
+       stop lining up. Instead every item starts at the same top edge
+       (so same-height photos are always level with each other), and
+       padding-top shifts that whole row down to center the PHOTOS
+       (not the variable-height captions under them) on the page. */
+    align-items:flex-start;
+    padding-top:calc((100vh - 58vh) / 2);
     gap:36px;
     overflow-x:auto;
-    overflow-y:hidden;
-    padding:0 80px;
+    overflow-y:visible;
+    padding-left:80px;
+    padding-right:80px;
     scroll-snap-type:x proximity;
   }
   /* Every photo shares the same HEIGHT (set here, on .photo — not the
@@ -369,7 +383,7 @@
     #hero h1{font-size:3.6rem;}
     #ui-jumps{top:auto; bottom:60px; right:14px; flex-direction:row; flex-wrap:wrap; justify-content:flex-end; max-width:220px;}
     #ui-corner{font-size:1.8rem;}
-    .moodboard-strip{padding:0 20px; gap:20px;}
+    .moodboard-strip{padding-left:20px; padding-right:20px; padding-top:calc((100vh - 41vh) / 2); gap:20px;}
     .moodboard-item .photo{height:41vh;}
     .moodboard-item .photo.placeholder{width:180px;}
   }
@@ -609,12 +623,13 @@
       card.style.transform = 'rotate(' + pos.rotate + 'deg)';
 
       const photoEl = document.createElement('div');
-      photoEl.className = 'photo photo-link';
       if (entry.src) {
+        photoEl.className = 'photo photo-link';
         const img = document.createElement('img');
         img.src = entry.src;
         photoEl.appendChild(img);
       } else {
+        photoEl.className = 'photo photo-link placeholder';
         photoEl.textContent = '[ photo ]';
       }
 
