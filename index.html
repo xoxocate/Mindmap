@@ -379,6 +379,25 @@
     font-size:1.3rem; text-align:center; margin-top:14px; color:var(--ink);
   }
 
+  /* ============ MOUSE TRAIL ============
+     A little light-blue glow follows the cursor and fades out. Each
+     dot is a plain fixed-position div, spawned on pointer move and
+     removed once its fade-out animation finishes. */
+  .mouse-trail-dot{
+    position:fixed;
+    left:0; top:0;
+    width:16px; height:16px;
+    border-radius:50%;
+    pointer-events:none;
+    z-index:9999;
+    background:radial-gradient(circle, rgba(140,190,255,0.55) 0%, rgba(140,190,255,0.22) 45%, rgba(140,190,255,0) 72%);
+    animation:mouse-trail-fade 1.3s ease-out forwards;
+  }
+  @keyframes mouse-trail-fade{
+    from{ opacity:1; transform:translate(-50%,-50%) scale(1); }
+    to{ opacity:0; transform:translate(-50%,-50%) scale(2.4); }
+  }
+
   @media (max-width:700px){
     #hero{width:90vw; left:2000px;}
     #hero h1{font-size:3.6rem;}
@@ -973,6 +992,22 @@
   // Escape key closes whichever overlay is open
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { closeEntry(); closeMoodboard(); }
+  });
+
+  // ---- Mouse trail ----
+  // Spawns a fading light-blue dot at the cursor as it moves, anywhere
+  // on the page. Throttled so a fast mouse doesn't spawn one per pixel.
+  let lastTrailTime = 0;
+  window.addEventListener('pointermove', (e) => {
+    const now = performance.now();
+    if (now - lastTrailTime < 35) return;
+    lastTrailTime = now;
+    const dot = document.createElement('div');
+    dot.className = 'mouse-trail-dot';
+    dot.style.left = e.clientX + 'px';
+    dot.style.top = e.clientY + 'px';
+    document.body.appendChild(dot);
+    dot.addEventListener('animationend', () => dot.remove());
   });
 </script>
 
