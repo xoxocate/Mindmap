@@ -380,22 +380,13 @@
   }
 
   /* ============ MOUSE TRAIL ============
-     A little light-blue glow follows the cursor and fades out. Each
-     dot is a plain fixed-position div, spawned on pointer move and
-     removed once its fade-out animation finishes. */
-  .mouse-trail-dot{
-    position:fixed;
-    left:0; top:0;
-    width:16px; height:16px;
-    border-radius:50%;
-    pointer-events:none;
+     A thin, continuous light-blue line follows the cursor and fades
+     out — drawn on a full-window canvas so it can be one smooth path
+     instead of separate dots. See the script at the bottom. */
+  #mouse-trail{
+    position:fixed; inset:0;
     z-index:9999;
-    background:radial-gradient(circle, rgba(140,190,255,0.55) 0%, rgba(140,190,255,0.22) 45%, rgba(140,190,255,0) 72%);
-    animation:mouse-trail-fade 1.3s ease-out forwards;
-  }
-  @keyframes mouse-trail-fade{
-    from{ opacity:1; transform:translate(-50%,-50%) scale(1); }
-    to{ opacity:0; transform:translate(-50%,-50%) scale(2.4); }
+    pointer-events:none;
   }
 
   @media (max-width:700px){
@@ -418,6 +409,8 @@
   </filter>
   <rect width="100%" height="100%" filter="url(#noiseFilter)"/>
 </svg>
+
+<canvas id="mouse-trail"></canvas>
 
 <div id="ui-corner">Cate</div>
 <div id="ui-hint">drag to move &middot; scroll or pinch to zoom</div>
@@ -995,20 +988,52 @@
   });
 
   // ---- Mouse trail ----
-  // Spawns a fading light-blue dot at the cursor as it moves, anywhere
-  // on the page. Throttled so a fast mouse doesn't spawn one per pixel.
-  let lastTrailTime = 0;
+  // A continuous, fading light-blue line follows the cursor anywhere
+  // on the page — recent cursor positions are kept for a little over
+  // a second and redrawn every frame, older points more transparent,
+  // so the tail fades smoothly instead of disappearing all at once.
+  const trailCanvas = document.getElementById('mouse-trail');
+  const trailCtx = trailCanvas.getContext('2d');
+  const TRAIL_LIFETIME = 1100; // ms
+  const TRAIL_COLOR = '152,167,217'; // --ink (#6178c5), lightened
+
+  function resizeTrailCanvas(){
+    trailCanvas.width = window.innerWidth;
+    trailCanvas.height = window.innerHeight;
+  }
+  resizeTrailCanvas();
+  window.addEventListener('resize', resizeTrailCanvas);
+
+  let trailPoints = [];
   window.addEventListener('pointermove', (e) => {
+    // getCoalescedEvents fills in the in-between positions a fast
+    // mouse skips between frames, so the line has no gaps in it.
+    const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
     const now = performance.now();
-    if (now - lastTrailTime < 35) return;
-    lastTrailTime = now;
-    const dot = document.createElement('div');
-    dot.className = 'mouse-trail-dot';
-    dot.style.left = e.clientX + 'px';
-    dot.style.top = e.clientY + 'px';
-    document.body.appendChild(dot);
-    dot.addEventListener('animationend', () => dot.remove());
+    (events.length ? events : [e]).forEach(ev => {
+      trailPoints.push({ x: ev.clientX, y: ev.clientY, t: now });
+    });
   });
+
+  function drawTrail(){
+    const now = performance.now();
+    trailPoints = trailPoints.filter(p => now - p.t < TRAIL_LIFETIME);
+    trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+    trailCtx.lineCap = 'round';
+    trailCtx.lineJoin = 'round';
+    trailCtx.lineWidth = 1.5;
+    for (let i = 1; i < trailPoints.length; i++){
+      const age = now - trailPoints[i].t;
+      const alpha = Math.max(0, 1 - age / TRAIL_LIFETIME);
+      trailCtx.strokeStyle = `rgba(${TRAIL_COLOR}, ${alpha * 0.6})`;
+      trailCtx.beginPath();
+      trailCtx.moveTo(trailPoints[i - 1].x, trailPoints[i - 1].y);
+      trailCtx.lineTo(trailPoints[i].x, trailPoints[i].y);
+      trailCtx.stroke();
+    }
+    requestAnimationFrame(drawTrail);
+  }
+  requestAnimationFrame(drawTrail);
 </script>
 
 </body>
